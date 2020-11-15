@@ -13,12 +13,12 @@ def run_intcode(intcode, noun, verb):
 
     Parameters
     ----------
-    intcode : iterable of int
+    intcode : list of int
         The Intcode program as a list of integers.
     noun : int
-        Value which overwrites position 1 in the Intcode.
+        Value which overwrites Intcode address 1.
     verb : int
-        Value which overwrites position 2 in the Intcode.
+        Value which overwrites Intcode address 2.
 
     Returns
     -------
@@ -26,10 +26,10 @@ def run_intcode(intcode, noun, verb):
         The resulting Intcode after running the program.
     """
     intcode = list(intcode)  # make a list copy
-    intcode[1], intcode[2] = noun, verb
-    ip = 0  # instruction pointer
+    intcode[1], intcode[2] = noun, verb  # overwrite addresses 1 and 2
+    ip = 0  # initialize instruction pointer
     while ip < len(intcode):
-        try:
+        try:  # get instruction
             opcode, *parameters = intcode[ip:ip + 4]
         except ValueError:  # less than 4 values available
             op1 = intcode[ip]  # this must be 99
