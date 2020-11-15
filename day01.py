@@ -1,11 +1,28 @@
-def fuel(m):
-    """Compute fuel consumption of mass m."""
-    f = m // 3 - 2
+def fuel(mass, recursive=False):
+    """Compute fuel consumption of mass m.
+
+    Parameters
+    ----------
+    mass : int
+        Mass of a module.
+    recursive : bool
+        If False, use simple fuel calculation for part 1.
+        If True, recursively compute fuel consumption for part 2.
+
+    Value
+    -----
+    f : int
+        Fuel consumption.
+    """
+    f = mass // 3 - 2
+    if not recursive:
+        return f
     if f > 0:
-        return f + fuel(f)
+        return f + fuel(f, recursive)
     return 0
 
 
+# mass of all modules on the spacecraft (puzzle input)
 mass = [112908, 61769, 65967, 51494, 99689, 114098, 135346, 59561, 147324,
         50465, 117491, 77845, 91959, 59847, 84013, 85763, 62121, 58965, 89809,
         97870, 77696, 70218, 118404, 83505, 141729, 61534, 101073, 131358,
@@ -18,4 +35,5 @@ mass = [112908, 61769, 65967, 51494, 99689, 114098, 135346, 59561, 147324,
         70325, 100859, 86484, 88795, 148164, 64473, 143089, 121023, 52904,
         120927, 87164, 133709, 89427, 105350, 106378, 98492, 78394, 145200]
 
-print(sum([fuel(m) for m in mass]))
+print("Fuel requirements (part 1):", sum([fuel(m) for m in mass]))
+print("Fuel requirements (part 2):", sum([fuel(m, True) for m in mass]))
