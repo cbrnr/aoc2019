@@ -9,8 +9,8 @@ def fuel(mass, recursive=False):
         If False, use simple fuel calculation for part 1.
         If True, recursively compute fuel consumption for part 2.
 
-    Value
-    -----
+    Returns
+    -------
     f : int
         Fuel consumption.
     """
