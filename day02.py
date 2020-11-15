@@ -6,27 +6,49 @@ intcode = (1, 0, 0, 3, 1, 1, 2, 3, 1, 3, 4, 3, 1, 5, 0, 3, 2, 13, 1, 19, 1, 19,
            1, 6, 95, 99, 1, 99, 9, 103, 2, 10, 103, 107, 1, 107, 6, 111, 2, 9,
            111, 115, 1, 5, 115, 119, 1, 10, 119, 123, 1, 2, 123, 127, 1, 127,
            6, 0, 99, 2, 14, 0, 0)
-output = 19690720
 
+
+def run_intcode(intcode, noun, verb):
+    """Run Intcode program.
+
+    Parameters
+    ----------
+    intcode : iterable of int
+        The Intcode program as a list of integers.
+    noun : int
+        Value which overwrites position 1 in the Intcode.
+    verb : int
+        Value which overwrites position 2 in the Intcode.
+
+    Returns
+    -------
+    result : list of int
+        The resulting Intcode after running the program.
+    """
+    intcode = list(intcode)  # make a list copy
+    intcode[1], intcode[2] = noun, verb
+    ip = 0  # instruction pointer
+    while ip < len(intcode):
+        try:
+            opcode, *parameters = intcode[ip:ip + 4]
+        except ValueError:  # less than 4 values available
+            op1 = intcode[ip]  # this must be 99
+        op1, op2, op3 = parameters
+        if opcode == 1:
+            intcode[op3] = intcode[op1] + intcode[op2]
+        elif opcode == 2:
+            intcode[op3] = intcode[op1] * intcode[op2]
+        elif opcode == 99:
+            break
+        ip += 4
+    return intcode
+
+
+print("Part 1:", run_intcode(intcode, 12, 2)[0])
+
+output = 19690720  # desired output
 for noun in range(100):
     for verb in range(100):
-        memory = list(intcode)
-        memory[1] = noun
-        memory[2] = verb
-
-        ip = 0  # instruction pointer
-        while ip < len(memory):
-            opcode, *parameters = memory[ip:ip + 4]
-            add1, add2, add3 = parameters
-
-            if opcode == 1:
-                memory[add3] = memory[add1] + memory[add2]
-            elif opcode == 2:
-                memory[add3] = memory[add1] * memory[add2]
-            elif opcode == 99:
-                break
-            ip += 4
-
-        if memory[0] == output:
-            print(100 * noun + verb)
+        if run_intcode(intcode, noun, verb)[0] == output:
+            print("Part 2:", 100 * noun + verb)
             break
