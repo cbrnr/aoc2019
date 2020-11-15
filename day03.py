@@ -2,13 +2,21 @@ import numpy as np
 
 
 class Panel:
+    """Rectangular panel containing electrical wires."""
     def __init__(self, *paths):
-        # determine required shape and origin of array based on given paths
+        """Initialize panel.
+
+        Parameters
+        ----------
+        *paths : str
+            Paths describing wires in the panel (e.g. "R8,U5,L5,D3").
+        """
+        # determine panel shape and origin so that all wires fit into it
+        self.paths = [path.split(",") for path in paths]  # store all paths
         xmin, xmax = 0, 0
         ymin, ymax = 0, 0
-        for path in paths:
+        for path in self.paths:
             x, y = 0, 0  # current position
-            path = path.split(",")
             for step in path:
                 direction, distance = step[0], int(step[1:])
                 if direction == "L":
@@ -26,63 +34,78 @@ class Panel:
         self.shape = ymax - ymin + 1, xmax - xmin + 1
         self.origin = ymax, -xmin
 
-        self.paths = []
+        # add wires to panel
         self.wires = []
-        for path in paths:
-            path = path.split(",")
-            self.paths.append(path)
+        for path in self.paths:
             self.add_wire(path)
 
     def add_wire(self, path):
+        """Add wire to panel.
+
+        Parameters
+        ----------
+        path : list of str
+            Path describing a wire.
+
+        Notes
+        -----
+        A path contains instructions on how to construct a wire (e.g.
+        ["R8", "U5", "L5", "D3"]). The resulting wire is stored as an array of
+        zeros and ones, where ones mark the locations of the wire in the panel
+        (and zeros are locations without a wire). The wire is automatically
+        added to the self.wires list.
+        """
         array = np.zeros(self.shape, dtype=int)
-        pos = list(self.origin)
+        y, x = list(self.origin)  # initial position (origin)
         for step in path:
             direction, distance = step[0], int(step[1:])
             if direction == "L":
-                start = pos[1] - 1
-                stop = pos[1] - distance - 1
+                start, stop = x - 1, x - distance - 1
                 stop = stop if stop >= 0 else None
-                array[pos[0], start:stop:-1] = 1
-                pos[1] -= distance
+                array[y, start:stop:-1] = 1
+                x -= distance
             elif direction == "R":
-                array[pos[0], pos[1] + 1:pos[1] + distance + 1] = 1
-                pos[1] += distance
+                array[y, x + 1:x + distance + 1] = 1
+                x += distance
             elif direction == "U":
-                to = pos[0] - distance - 1
-                to = to if to >= 0 else None
-                array[pos[0] - 1:to:-1, pos[1]] = 1
-                pos[0] -= distance
+                stop = y - distance - 1
+                stop = stop if stop >= 0 else None
+                array[y - 1:stop:-1, x] = 1
+                y -= distance
             elif direction == "D":
-                array[pos[0] + 1:pos[0] + distance + 1, pos[1]] = 1
-                pos[0] += distance
+                array[y + 1:y + distance + 1, x] = 1
+                y += distance
         self.wires.append(array)
 
     def intersect_wires(self):
+        """Determine coordinates of all wire intersections."""
         return np.argwhere(sum(self.wires) == 2)
 
     def manhattan_distances(self):
+        """Determine Manhattan distances from all intersections to origin."""
         return np.sum(np.abs(self.origin - self.intersect_wires()), 1)
 
     def steps(self):
-        n_steps = []
+        """Determine sum of steps from origin to all intersections."""
+        n_steps = []  # sum of steps for each intersection
         for intersection in self.intersect_wires():
-            n = 0
+            n = 0  # count steps for current intersection
             for path in self.paths:
-                pos = np.array(self.origin)
                 found = False
+                y, x = np.array(self.origin)
                 for step in path:
                     direction, distance = step[0], int(step[1:])
                     for d in range(distance):
                         n += 1
                         if direction == "L":
-                            pos[1] -= 1
+                            x -= 1
                         elif direction == "R":
-                            pos[1] += 1
+                            x += 1
                         elif direction == "U":
-                            pos[0] -= 1
+                            y -= 1
                         elif direction == "D":
-                            pos[0] += 1
-                        if np.array_equal(pos, intersection):
+                            y += 1
+                        if np.array_equal([y, x], intersection):
                             found = True
                             break  # found intersection, go to next path
                     if found:
@@ -141,7 +164,7 @@ path2 = ("L1004,U110,R738,D383,R606,U840,L123,D756,L234,D585,R475,U429,L585,"
          "D976,R415,U541,L746,D569,L563,D410,L409,D39,R117,U638,R824,D215,"
          "R232,U578,R790,U535,R873,D477,R805,U94,L313,U570,L500,U783,L556,"
          "U663,L335,U152,L524,D583,L462,U710,R741,U641,L135")
+
 panel = Panel(path1, path2)
-print("Smallest Manhattan distance to intersection:",
-      panel.manhattan_distances().min())
-print("Smallest number of combined steps to intersection:", min(panel.steps()))
+print("Smallest Manhattan distance:", panel.manhattan_distances().min())
+print("Smallest number of combined steps:", min(panel.steps()))
