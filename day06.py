@@ -54,6 +54,31 @@ def level(node, tree, root="COM"):
             raise KeyError(f"Node '{node}' not found.")
 
 
+def parent(node, tree, root="COM"):
+    """Return parent of a given node in a tree.
+
+    Parameters
+    ----------
+    node : str
+        Node in a tree.
+    tree : dict
+        A tree stored in a dictionary. The keys are the nodes, and the values
+        are lists of children nodes.
+    root : str
+        Root node (by definition this is level 0).
+
+    Returns
+    -------
+    parent : str
+        Parent of the given node.
+    """
+    if node == root:
+        return  # root has no parent
+    for key, value in tree.items():
+        if node in value:
+            return key
+
+
 description = """2YQ)3JS
 GT4)KMQ
 FNN)6P6
@@ -1648,6 +1673,7 @@ K)YOU
 I)SAN"""
 
 orbits = create_orbits(description)
+
 s = 0
 for planet in orbits:  # sum node levels of all nodes
     s += level(planet, orbits)
