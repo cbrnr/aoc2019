@@ -1634,8 +1634,8 @@ class OrbitMap:
             return len(self.ancestors(b))
         if b == self.root:
             return len(self.ancestors(a))
-        d1 = self.ancestors(a).index(self.first_common_ancestor(a, b)) + 1
-        d2 = self.ancestors(b).index(self.first_common_ancestor(a, b)) + 1
+        d1 = self.ancestors(a, True).index(self.first_common_ancestor(a, b))
+        d2 = self.ancestors(b, True).index(self.first_common_ancestor(a, b))
         return d1 + d2
 
     def parent(self, a):
@@ -1657,7 +1657,7 @@ class OrbitMap:
             if a in children:
                 return obj
 
-    def ancestors(self, a):
+    def ancestors(self, a, include_self=False):
         """Return all ancestors of object a.
 
         Parameters
@@ -1672,7 +1672,7 @@ class OrbitMap:
         """
         if a not in self.orbits:
             raise KeyError(f"Object '{a}' not found.")
-        ancestors = []
+        ancestors = [] if not include_self else [a]
         while True:
             if a == self.root:  # found the root
                 return ancestors
@@ -1681,9 +1681,13 @@ class OrbitMap:
 
     def first_common_ancestor(self, a, b):
         """Find first common ancestor of two objects."""
-        ancestors_a = self.ancestors(a)
-        ancestors_b = self.ancestors(b)
-        common = [x for x in ancestors_a if x in ancestors_b]
+        ancestors_a = self.ancestors(a, include_self=True)
+        ancestors_b = self.ancestors(b, include_self=True)
+        if len(ancestors_a) >= len(ancestors_b):
+            longer, shorter = ancestors_a, ancestors_b
+        else:
+            longer, shorter = ancestors_b, ancestors_a
+        common = [x for x in longer if x in shorter]
         if common:
             return common[0]
 
@@ -1696,3 +1700,5 @@ s = 0
 for obj in orbitmap:  # sum node levels of all nodes
     s += orbitmap.distance(obj)
 print("Part 1:", s)
+
+print("Part 2:", orbitmap.distance("SAN", "YOU") - 2)
