@@ -1626,17 +1626,17 @@ class OrbitMap:
         self.orbits[b].append(a)
         self.orbits[a]
 
-    def distance(self, a):
-        """Return distance between object a and root (depth of a)."""
-        if a not in self.orbits:
-            raise KeyError(f"Object '{a}' not found.")
-        for obj, children in self.orbits.items():
-            if a in children:
-                if obj == self.root:
-                    return 1
-                else:
-                    return 1 + self.distance(obj)
-        return 0  # object was root
+    def distance(self, a, b=None):
+        """Return distance between objects a and b (root by default)."""
+        if b is None:
+            b = self.root
+        if a == self.root:
+            return len(self.ancestors(b))
+        if b == self.root:
+            return len(self.ancestors(a))
+        d1 = self.ancestors(a).index(self.first_common_ancestor(a, b)) + 1
+        d2 = self.ancestors(b).index(self.first_common_ancestor(a, b)) + 1
+        return d1 + d2
 
     def parent(self, a):
         """Return parent of object a.
@@ -1692,7 +1692,6 @@ class OrbitMap:
 
 
 orbitmap = OrbitMap.from_description(description)
-
 s = 0
 for obj in orbitmap:  # sum node levels of all nodes
     s += orbitmap.distance(obj)
