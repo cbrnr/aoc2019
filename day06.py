@@ -1,84 +1,6 @@
 from collections import defaultdict
 
 
-def create_orbits(s):
-    """Create an orbit map (tree) from a string description.
-
-    Parameters
-    ----------
-    s : str
-        Orbit map defined in a string containing one item per line formatted as
-        XXX)YYY (YYY orbits XXX).
-
-    Returns
-    -------
-    orbits : dict
-        Orbit map as a tree. Each node (key) contains its children (value).
-    """
-    orbits = defaultdict(list)
-    for orbit in s.split():
-        key, value = orbit.split(")")
-        orbits[key].append(value)
-        orbits[value]  # make sure every child is created
-    return orbits
-
-
-def level(node, tree, root="COM"):
-    """Return level of a given node in a tree.
-
-    Parameters
-    ----------
-    node : str
-        Node in a tree.
-    tree : dict
-        A tree stored in a dictionary. The keys are the nodes, and the values
-        are lists of children nodes.
-    root : str
-        Root node (by definition this is level 0).
-
-    Returns
-    -------
-    lvl : int
-        The node level in the tree.
-    """
-    for key, value in tree.items():
-        if node in value:
-            if key == root:  # root
-                return 1
-            else:
-                return 1 + level(key, tree)
-    else:
-        if node == root:
-            return 0  # node was root
-        else:
-            raise KeyError(f"Node '{node}' not found.")
-
-
-def parent(node, tree, root="COM"):
-    """Return parent of a given node in a tree.
-
-    Parameters
-    ----------
-    node : str
-        Node in a tree.
-    tree : dict
-        A tree stored in a dictionary. The keys are the nodes, and the values
-        are lists of children nodes.
-    root : str
-        Root node (by definition this is level 0).
-
-    Returns
-    -------
-    parent : str
-        Parent of the given node.
-    """
-    if node == root:
-        return  # root has no parent
-    for key, value in tree.items():
-        if node in value:
-            return key
-
-
 # description = """2YQ)3JS
 # GT4)KMQ
 # FNN)6P6
@@ -1672,28 +1594,106 @@ K)L
 K)YOU
 I)SAN"""
 
-orbits = create_orbits(description)
+
+class OrbitMap:
+    def __init__(self, root="COM"):
+        self.orbits = defaultdict(list)
+        self.orbits[root]
+        self.root = root
+
+    @classmethod
+    def from_description(cls, description):
+        """Create OrbitMap from string description.
+
+        Parameters
+        ----------
+        description : str
+            Orbit map defined in a string containing one item per line
+            formatted as "XXX)YYY" (YYY orbits XXX).
+
+        Returns
+        -------
+        inst : OrbitMap
+            OrbitMap instance populated with orbits from description.
+        """
+        inst = cls()
+        for orbit in description.split():
+            inst.add_orbit(*orbit.split(")"))
+        return inst
+
+    def add_orbit(self, b, a):
+        """Add entry to orbit map (b orbits a)."""
+        self.orbits[b].append(a)
+        self.orbits[a]
+
+    def distance(self, a):
+        """Return distance between object a and root (depth of a)."""
+        if a not in self.orbits:
+            raise KeyError(f"Object '{a}' not found.")
+        for obj, children in self.orbits.items():
+            if a in children:
+                if obj == self.root:
+                    return 1
+                else:
+                    return 1 + self.distance(obj)
+        return 0  # object was root
+
+    def parent(self, a):
+        """Return parent of object a.
+
+        Parameters
+        ----------
+        a : str
+            Name of object.
+
+        Returns
+        -------
+        parent : str
+            Parent of object a.
+        """
+        if a == self.root:
+            return  # root has no parent
+        for obj, children in self.orbits.items():
+            if a in children:
+                return obj
+
+    def ancestors(self, a):
+        """Return all ancestors of object a.
+
+        Parameters
+        ----------
+        a : str
+            Name of object.
+
+        Returns
+        -------
+        ancestors : list
+            Ancestors of object a.
+        """
+        if a not in self.orbits:
+            raise KeyError(f"Object '{a}' not found.")
+        ancestors = []
+        while True:
+            if a == self.root:  # found the root
+                return ancestors
+            a = self.parent(a)
+            ancestors.append(a)
+
+    def first_common_ancestor(self, a, b):
+        """Find first common ancestor of two objects."""
+        ancestors_a = self.ancestors(a)
+        ancestors_b = self.ancestors(b)
+        common = [x for x in ancestors_a if x in ancestors_b]
+        if common:
+            return common[0]
+
+    def __iter__(self):
+        return iter(self.orbits)
+
+
+orbitmap = OrbitMap.from_description(description)
 
 s = 0
-for planet in orbits:  # sum node levels of all nodes
-    s += level(planet, orbits)
-
+for obj in orbitmap:  # sum node levels of all nodes
+    s += orbitmap.distance(obj)
 print("Part 1:", s)
-
-def find_ancestors(node, tree, root="COM"):
-    """Find all ancestors of a given node in a tree."""
-    if node not in tree:
-        raise KeyError(f"Node '{node}' not found.")
-    parents = []
-    while True:
-        node = parent(node, orbits)
-        parents.append(node)
-        if node == root:
-            return parents
-
-
-def first_common_ancestor(node_a, node_b, tree, root="COM"):
-    """Find first common ancestor of two nodes."""
-    a = find_ancestors(node_a, tree, root)
-    b = find_ancestors(node_b, tree, root)
-    return [x for x in a if x in b][0]
