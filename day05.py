@@ -37,10 +37,11 @@ def run_intcode(intcode, inp):
 
     Returns
     -------
-    result : list of int
-        The resulting Intcode after running the program.
+    output : int
+        The last output of the program.
     """
     intcode = list(intcode)  # make a list copy
+    output = None
     ip = 0  # initialize instruction pointer
     while True:
         opcode = int(f"{intcode[ip]:05}"[-2:])
@@ -65,8 +66,9 @@ def run_intcode(intcode, inp):
             ip += 2
         elif opcode == OpCode.OUTPUT:
             op1 = intcode[ip + 1]
+            output = value(intcode, op1, m1)
             print(f", {op1} ({Mode(m1)})")
-            print(">>>", value(intcode, op1, m1))
+            print(">>>", output)
             ip += 2
         elif opcode == OpCode.JUMP_IF_TRUE:
             op1, op2 = intcode[ip + 1:ip + 3]
@@ -96,10 +98,11 @@ def run_intcode(intcode, inp):
                 intcode[op3] = 0
             ip += 4
         elif opcode == OpCode.HALT:  # halt
+            print()
             break
         else:  # error
             raise ValueError(f"Unknown opcode {opcode}.")
-    return intcode
+    return output
 
 
 intcode = (3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 101, 71, 150, 224,
@@ -153,7 +156,7 @@ intcode = (3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 101, 71, 150, 224,
            4, 223, 99, 226)
 
 print("### Part 1 ######")
-run_intcode(intcode, inp=1)
+print(run_intcode(intcode, inp=1))
 
 print("\n\n### Part 2: ######")
-run_intcode(intcode, inp=5)
+print(run_intcode(intcode, inp=5))
