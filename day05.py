@@ -25,15 +25,15 @@ def value(intcode, op, mode=Mode.POSITION):
         return op
 
 
-def run_intcode(intcode, inp):
+def run_intcode(intcode, *args):
     """Run Intcode program.
 
     Parameters
     ----------
     intcode : list or tuple of int
         Intcode program as a list (or tuple) of integers.
-    inp : int
-        Input parameter.
+    *args : int
+        Input parameters.
 
     Returns
     -------
@@ -43,6 +43,7 @@ def run_intcode(intcode, inp):
     intcode = list(intcode)  # make a list copy
     output = None
     ip = 0  # initialize instruction pointer
+    input_pointer = 0  # initialize input pointer
     while True:
         opcode = int(f"{intcode[ip]:05}"[-2:])
         m1, m2, m3 = (int(m) for m in f"{intcode[ip]:05}"[-3::-1])
@@ -61,8 +62,9 @@ def run_intcode(intcode, inp):
             ip += 4
         elif opcode == OpCode.INPUT:
             op1 = intcode[ip + 1]
-            print(f", {op1} ({Mode(m1)}) → {inp}")
-            intcode[op1] = inp
+            print(f", {op1} ({Mode(m1)}) → {args[input_pointer]}")
+            intcode[op1] = args[input_pointer]
+            input_pointer += 1
             ip += 2
         elif opcode == OpCode.OUTPUT:
             op1 = intcode[ip + 1]
@@ -156,7 +158,7 @@ intcode = (3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 101, 71, 150, 224,
            4, 223, 99, 226)
 
 print("### Part 1 ######")
-print(run_intcode(intcode, inp=1))
+print(run_intcode(intcode, 1))
 
 print("\n\n### Part 2: ######")
-print(run_intcode(intcode, inp=5))
+print(run_intcode(intcode, 5))
