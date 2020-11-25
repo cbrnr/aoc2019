@@ -1,4 +1,5 @@
 from enum import IntEnum
+from logging import info
 
 
 class OpCode(IntEnum):
@@ -47,34 +48,34 @@ def run_intcode(intcode, *args):
     while True:
         opcode = int(f"{intcode[ip]:05}"[-2:])
         m1, m2, m3 = (int(m) for m in f"{intcode[ip]:05}"[-3::-1])
-        print(f"{ip:5} | {opcode:2} ({OpCode(opcode).name})", end="")
+        msg = f"{ip:5} | {opcode:2} ({OpCode(opcode).name})"
         if opcode == OpCode.ADD:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            print(f", {op1} ({Mode(m1)}) + {op2} ({Mode(m2)}) → {op3} "
-                  f"({Mode(m3)})")
+            msg += (f", {op1} ({Mode(m1)}) + {op2} ({Mode(m2)}) → {op3} "
+                    f"({Mode(m3)})")
             intcode[op3] = value(intcode, op1, m1) + value(intcode, op2, m2)
             ip += 4
         elif opcode == OpCode.MULT:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            print(f", {op1} ({Mode(m1)}) * {op2} ({Mode(m2)}) → {op3} "
-                  f"({Mode(m3)})")
+            msg += (f", {op1} ({Mode(m1)}) * {op2} ({Mode(m2)}) → {op3} "
+                    f"({Mode(m3)})")
             intcode[op3] = value(intcode, op1, m1) * value(intcode, op2, m2)
             ip += 4
         elif opcode == OpCode.INPUT:
             op1 = intcode[ip + 1]
-            print(f", {op1} ({Mode(m1)}) → {args[input_pointer]}")
+            msg += f", {op1} ({Mode(m1)}) → {args[input_pointer]}"
             intcode[op1] = args[input_pointer]
             input_pointer += 1
             ip += 2
         elif opcode == OpCode.OUTPUT:
             op1 = intcode[ip + 1]
             output = value(intcode, op1, m1)
-            print(f", {op1} ({Mode(m1)})")
-            print(">>>", output)
+            msg += f", {op1} ({Mode(m1)})"
+            msg += f" >>> {output}"
             ip += 2
         elif opcode == OpCode.JUMP_IF_TRUE:
             op1, op2 = intcode[ip + 1:ip + 3]
-            print(f", {op1} ({Mode(m1)}) → {op2} ({Mode(m2)})")
+            msg += f", {op1} ({Mode(m1)}) → {op2} ({Mode(m2)})"
             if value(intcode, op1, m1) != 0:
                 ip = value(intcode, op2, m2)
             else:
@@ -100,10 +101,10 @@ def run_intcode(intcode, *args):
                 intcode[op3] = 0
             ip += 4
         elif opcode == OpCode.HALT:  # halt
-            print()
             break
         else:  # error
             raise ValueError(f"Unknown opcode {opcode}.")
+        info(msg)
     return output
 
 
@@ -157,8 +158,9 @@ intcode = (3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 101, 71, 150, 224,
            226, 677, 224, 102, 2, 223, 223, 1006, 224, 674, 101, 1, 223, 223,
            4, 223, 99, 226)
 
-print("### Part 1 ######")
-print(run_intcode(intcode, 1))
+if __name__ == "__main__":
+    print("### Part 1 ######")
+    print(run_intcode(intcode, 1))
 
-print("\n\n### Part 2: ######")
-print(run_intcode(intcode, 5))
+    print("\n\n### Part 2: ######")
+    print(run_intcode(intcode, 5))
