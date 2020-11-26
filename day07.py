@@ -1,9 +1,5 @@
 from itertools import permutations
-import logging
 from day05 import run_intcode
-
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 intcode = (3, 8, 1001, 8, 10, 8, 105, 1, 0, 0, 21, 38, 63, 72, 81, 106, 187,
@@ -48,5 +44,9 @@ print(f"Part 1: {max_out} {max_phases}")
 #            27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5)
 # phases = [9, 8, 7, 6, 5]
 # out = 0
-# for phase in phases:
-#     out = run_intcode(intcode, phase, out)
+# i = 0
+# while i < 100:
+#     for phase in phases:
+#         out = run_intcode(intcode, out, phase)
+#         print(out)
+#     i += 1

@@ -1,5 +1,5 @@
 from enum import IntEnum
-from logging import info
+import logging
 
 
 class OpCode(IntEnum):
@@ -7,10 +7,10 @@ class OpCode(IntEnum):
     MULT = 2
     INPUT = 3
     OUTPUT = 4
-    JUMP_IF_TRUE = 5
-    JUMP_IF_FALSE = 6
-    LESS_THAN = 7
-    EQUALS = 8
+    JIT = 5
+    JIF = 6
+    LT = 7
+    EQU = 8
     HALT = 99
 
 
@@ -19,7 +19,7 @@ class Mode(IntEnum):
     IMMEDIATE = 1
 
 
-def value(intcode, op, mode=Mode.POSITION):
+def v(intcode, op, mode=Mode.POSITION):
     if mode == Mode.POSITION:
         return intcode[op]
     elif mode == Mode.IMMEDIATE:
@@ -38,78 +38,72 @@ def run_intcode(intcode, inp, phase=None):
     phase : int | None
         Phase setting.
 
-    Returns
-    -------
+    Yields
+    ------
     output : int
-        The last output of the program.
+        Output for every output instruction.
     """
     intcode = list(intcode)  # make a list copy
-    output = None
     ip = 0  # initialize instruction pointer
+    output = None
     while True:
         opcode = int(f"{intcode[ip]:05}"[-2:])
         m1, m2, m3 = (int(m) for m in f"{intcode[ip]:05}"[-3::-1])
-        msg = f"{ip:5} | {opcode:2} ({OpCode(opcode).name})"
+        msg = f"{ip:5} | {opcode:2} {OpCode(opcode).name:6} | "
         if opcode == OpCode.ADD:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            msg += (f", {op1} ({Mode(m1)}) + {op2} ({Mode(m2)}) → {op3} "
-                    f"({Mode(m3)})")
-            intcode[op3] = value(intcode, op1, m1) + value(intcode, op2, m2)
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) + {op2} ({v2}) = {v1 + v2} → {op3}"
+            intcode[op3] = v1 + v2
             ip += 4
         elif opcode == OpCode.MULT:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            msg += (f", {op1} ({Mode(m1)}) * {op2} ({Mode(m2)}) → {op3} "
-                    f"({Mode(m3)})")
-            intcode[op3] = value(intcode, op1, m1) * value(intcode, op2, m2)
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) * {op2} ({v2}) = {v1 * v2} → {op3}"
+            intcode[op3] = v1 * v2
             ip += 4
         elif opcode == OpCode.INPUT:
             op1 = intcode[ip + 1]
             if phase is not None:  # if available, phase is the first input
-                msg += f", {op1} ({Mode(m1)}) → {phase}"
+                msg += f"{phase} → {op1}"
                 intcode[op1] = phase
                 phase = None
             else:
-                msg += f", {op1} ({Mode(m1)}) → {inp}"
+                msg += f"{inp} → {op1}"
                 intcode[op1] = inp
             ip += 2
         elif opcode == OpCode.OUTPUT:
             op1 = intcode[ip + 1]
-            output = value(intcode, op1, m1)
-            msg += f", {op1} ({Mode(m1)})"
-            msg += f" >>> {output}"
+            output = v(intcode, op1, m1)
+            msg += f"{op1} → {output}"
             ip += 2
-        elif opcode == OpCode.JUMP_IF_TRUE:
+        elif opcode == OpCode.JIT:
             op1, op2 = intcode[ip + 1:ip + 3]
-            msg += f", {op1} ({Mode(m1)}) → {op2} ({Mode(m2)})"
-            if value(intcode, op1, m1) != 0:
-                ip = value(intcode, op2, m2)
-            else:
-                ip += 3
-        elif opcode == OpCode.JUMP_IF_FALSE:
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) → {op2}"
+            ip = v2 if v1 != 0 else ip + 3
+        elif opcode == OpCode.JIF:
             op1, op2 = intcode[ip + 1:ip + 3]
-            if value(intcode, op1, m1) == 0:
-                ip = value(intcode, op2, m2)
-            else:
-                ip += 3
-        elif opcode == OpCode.LESS_THAN:
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) → {op2}"
+            ip = v2 if v1 == 0 else ip + 3
+        elif opcode == OpCode.LT:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            if value(intcode, op1, m1) < value(intcode, op2, m2):
-                intcode[op3] = 1
-            else:
-                intcode[op3] = 0
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) < {op2} ({v2}) → {op3}"
+            intcode[op3] = 1 if v1 < v2 else 0
             ip += 4
-        elif opcode == OpCode.EQUALS:
+        elif opcode == OpCode.EQU:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
-            if value(intcode, op1, m1) == value(intcode, op2, m2):
-                intcode[op3] = 1
-            else:
-                intcode[op3] = 0
+            v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
+            msg += f"{op1} ({v1}) == {op2} ({v2}) → {op3}"
+            intcode[op3] = 1 if v1 == v2 else 0
             ip += 4
         elif opcode == OpCode.HALT:  # halt
             break
         else:  # error
             raise ValueError(f"Unknown opcode {opcode}.")
-        info(msg)
+        logging.info(msg)
     return output
 
 
@@ -165,7 +159,7 @@ intcode = (3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 101, 71, 150, 224,
 
 if __name__ == "__main__":
     print("### Part 1 ######")
-    print(run_intcode(intcode, 1))
+    print(run_intcode(intcode, 1))  # 4511442
 
     print("\n\n### Part 2: ######")
-    print(run_intcode(intcode, 5))
+    print(run_intcode(intcode, 5))  # 12648139
