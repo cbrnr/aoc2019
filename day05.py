@@ -26,15 +26,17 @@ def value(intcode, op, mode=Mode.POSITION):
         return op
 
 
-def run_intcode(intcode, *args):
+def run_intcode(intcode, inp, phase=None):
     """Run Intcode program.
 
     Parameters
     ----------
     intcode : list or tuple of int
         Intcode program as a list (or tuple) of integers.
-    *args : int
-        Input parameters.
+    inp : int
+        Input parameter.
+    phase : int | None
+        Phase setting.
 
     Returns
     -------
@@ -44,7 +46,6 @@ def run_intcode(intcode, *args):
     intcode = list(intcode)  # make a list copy
     output = None
     ip = 0  # initialize instruction pointer
-    input_pointer = 0  # initialize input pointer
     while True:
         opcode = int(f"{intcode[ip]:05}"[-2:])
         m1, m2, m3 = (int(m) for m in f"{intcode[ip]:05}"[-3::-1])
@@ -63,9 +64,13 @@ def run_intcode(intcode, *args):
             ip += 4
         elif opcode == OpCode.INPUT:
             op1 = intcode[ip + 1]
-            msg += f", {op1} ({Mode(m1)}) → {args[input_pointer]}"
-            intcode[op1] = args[input_pointer]
-            input_pointer += 1
+            if phase is not None:  # if available, phase is the first input
+                msg += f", {op1} ({Mode(m1)}) → {phase}"
+                intcode[op1] = phase
+                phase = None
+            else:
+                msg += f", {op1} ({Mode(m1)}) → {inp}"
+                intcode[op1] = inp
             ip += 2
         elif opcode == OpCode.OUTPUT:
             op1 = intcode[ip + 1]
