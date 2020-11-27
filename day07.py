@@ -34,20 +34,31 @@ max_phases = []
 for phases in permutations(range(5)):
     out = 0
     for phase in phases:
-        for out in run_intcode(intcode, out, phase):
-            pass
+        out = next(run_intcode(intcode, out, phase))
     if out > max_out:
         max_out = out
         max_phases = phases
 print(f"Part 1: {max_out} {max_phases}")
 
-# intcode = (3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26, 27, 4,
-#            27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5)
-# phases = [9, 8, 7, 6, 5]
-# out = 0
-# i = 0
-# while i < 100:
-#     for phase in phases:
-#         out = run_intcode(intcode, out, phase)
-#         print(out)
-#     i += 1
+max_out = 0
+max_phases = []
+for phases in permutations(range(5, 10)):
+    out = 0  # initial input
+    amps = []
+    for i in range(5):  # initialize 5 amps in a chain
+        amp = run_intcode(intcode, inp=out, phase=phases[i])
+        amps.append(amp)
+        out = next(amp)
+    done = [False] * 5  # status of all 5 amps
+    while True:
+        for i, amp in enumerate(amps):
+            try:
+                out = amp.send(out)
+            except StopIteration:  # if amp is done
+                done[i] = True
+        if all(done):
+            break
+    if out > max_out:
+        max_out = out
+        max_phases = phases
+print(f"Part 2: {max_out} {max_phases}")

@@ -76,7 +76,7 @@ def run_intcode(intcode, inp, phase=None):
             output = v(intcode, op1, m1)
             msg += f"{op1} → {output}"
             ip += 2
-            yield output
+            inp = yield output
         elif opcode == OpCode.JIT:
             op1, op2 = intcode[ip + 1:ip + 3]
             v1, v2 = v(intcode, op1, m1), v(intcode, op2, m2)
