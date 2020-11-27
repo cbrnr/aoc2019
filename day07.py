@@ -34,7 +34,8 @@ max_phases = []
 for phases in permutations(range(5)):
     out = 0
     for phase in phases:
-        out = run_intcode(intcode, out, phase)
+        for out in run_intcode(intcode, out, phase):
+            pass
     if out > max_out:
         max_out = out
         max_phases = phases
