@@ -1650,6 +1650,8 @@ class OrbitMap:
         ----------
         a : str
             Name of object.
+        include_self : bool
+            Whether or not to include a in the list of ancestors.
 
         Returns
         -------
