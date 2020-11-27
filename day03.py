@@ -4,7 +4,7 @@ import numpy as np
 class Panel:
     """Rectangular panel containing electrical wires."""
     def __init__(self, *paths):
-        """Initialize panel.
+        """Create and initialize a panel.
 
         Parameters
         ----------
@@ -166,5 +166,5 @@ path2 = ("L1004,U110,R738,D383,R606,U840,L123,D756,L234,D585,R475,U429,L585,"
          "U663,L335,U152,L524,D583,L462,U710,R741,U641,L135")
 
 panel = Panel(path1, path2)
-print("Smallest Manhattan distance:", panel.manhattan_distances().min())
-print("Smallest number of combined steps:", min(panel.steps()))
+print("Part 1:", panel.manhattan_distances().min())
+print("Part 2:", min(panel.steps()))

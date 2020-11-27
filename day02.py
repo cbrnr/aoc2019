@@ -22,8 +22,9 @@ def run_intcode(intcode, noun, verb):
         try:  # get instruction
             opcode, *parameters = intcode[ip:ip + 4]
         except ValueError:  # less than 4 values available
-            op1 = intcode[ip]  # this must be 99
-        op1, op2, op3 = parameters
+            opcode = intcode[ip]  # this must be 99
+        else:
+            op1, op2, op3 = parameters
         if opcode == 1:
             intcode[op3] = intcode[op1] + intcode[op2]
         elif opcode == 2:
