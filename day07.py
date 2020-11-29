@@ -39,6 +39,7 @@ for phases in permutations(range(5)):
         max_out = out
         max_phases = phases
 print(f"Part 1: {max_out} {max_phases}")
+assert max_out == 206580
 
 max_out = 0
 max_phases = []
@@ -62,3 +63,4 @@ for phases in permutations(range(5, 10)):
         max_out = out
         max_phases = phases
 print(f"Part 2: {max_out} {max_phases}")
+assert max_out == 2299406
