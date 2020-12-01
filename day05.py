@@ -3,6 +3,18 @@ import logging
 
 
 class DynamicList(list):
+    """List that grows dynamically if indexed out of bounds.
+
+    Examples
+    --------
+    >>> x = DynamicList([1, 2, 3])
+    >>> x[1]
+    2
+    >>> x[5]
+    0
+    >>> x
+    [1, 2, 3, 0, 0, 0]
+    """
     def __getitem__(self, item):
         self.expand(item)
         return super().__getitem__(item)
@@ -82,14 +94,16 @@ def run_intcode(intcode, inp, phase=None):
             op1, op2, op3 = intcode[ip + 1:ip + 4]
             v1, v2 = v(intcode, op1, m1, base), v(intcode, op2, m2, base)
             v3 = v(intcode, op3, m3, base, write=True)
-            msg += f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} + {v2} = {v1 + v2} → intcode[{v3}]"
+            msg += (f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} + {v2} = "
+                    f"{v1 + v2} → intcode[{v3}]")
             intcode[v3] = v1 + v2
             ip += 4
         elif opcode == OpCode.MULT:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
             v1, v2 = v(intcode, op1, m1, base), v(intcode, op2, m2, base)
             v3 = v(intcode, op3, m3, base, write=True)
-            msg += f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} * {v2} = {v1 * v2} → intcode[{v3}]"
+            msg += (f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} * {v2} = "
+                    f"{v1 * v2} → intcode[{v3}]")
             intcode[v3] = v1 * v2
             ip += 4
         elif opcode == OpCode.INPUT:
@@ -123,14 +137,16 @@ def run_intcode(intcode, inp, phase=None):
             op1, op2, op3 = intcode[ip + 1:ip + 4]
             v1, v2 = v(intcode, op1, m1, base), v(intcode, op2, m2, base)
             v3 = v(intcode, op3, m3, base, write=True)
-            msg += f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} < {v2} → intcode[{v3}]"
+            msg += (f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} < {v2} → "
+                    f"intcode[{v3}]")
             intcode[v3] = 1 if v1 < v2 else 0
             ip += 4
         elif opcode == OpCode.EQU:
             op1, op2, op3 = intcode[ip + 1:ip + 4]
             v1, v2 = v(intcode, op1, m1, base), v(intcode, op2, m2, base)
             v3 = v(intcode, op3, m3, base, write=True)
-            msg += f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} == {v2} → intcode[{v3}]"
+            msg += (f"{op1} {op2} {op3} ({m1} {m2} {m3}): {v1} == {v2} → "
+                    f"intcode[{v3}]")
             intcode[v3] = 1 if v1 == v2 else 0
             ip += 4
         elif opcode == OpCode.BASE:
